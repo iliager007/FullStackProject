@@ -1,0 +1,152 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+h1 {
+  margin: 0;
+  color: #4CAF50;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.difficulty-selector {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.board {
+  background: #333;
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.cell {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #555;
+  background: #444;
+  color: rgba(255, 255, 255, 0.87);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cell:hover {
+  background: #555;
+}
+
+.cell.revealed {
+  background: #666;
+}
+
+.cell.mine {
+  background: #ff4444;
+}
+
+.number-1 { color: blue; }
+.number-2 { color: green; }
+.number-3 { color: red; }
+.number-4 { color: darkblue; }
+.number-5 { color: darkred; }
+.number-6 { color: teal; }
+.number-7 { color: black; }
+.number-8 { color: gray; }
+
+button {
+  padding: 8px 16px;
+  font-size: 16px;
+  cursor: pointer;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  min-width: 100px;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background: #45a049;
+}
+
+.reset-button {
+  width: 100%;
+}
+
+.timer {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+
+  .board {
+    background: #e0e0e0;
+  }
+
+  .cell {
+    border: 1px solid #cccccc;
+    background: #f5f5f5;
+    color: #213547;
+  }
+
+  .cell:hover {
+    background: #e8e8e8;
+  }
+
+  .cell.revealed {
+    background: #ffffff;
+  }
+
+  .cell.mine {
+    background: #ff9999;
+  }
+
+  .timer {
+    color: #213547;
+  }
+}
