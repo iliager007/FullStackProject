@@ -1,31 +1,30 @@
 const API_URL = 'http://localhost:8000/api/auth';
 
-// Add this function to get CSRF token from cookies
 function getCsrfToken() {
     const name = 'csrftoken';
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
+    if (!document.cookie) return null;
+    
+    const cookie = document.cookie
+        .split(';')
+        .find(cookie => cookie.trim().startsWith(`${name}=`));
+        
+    return cookie ? decodeURIComponent(cookie.trim().substring(name.length + 1)) : null;
 }
+
+const getDefaultHeaders = () => ({
+    'Content-Type': 'application/json',
+    'X-CSRFToken': getCsrfToken()
+ });
+ const getDefaultOptions = () => ({
+    credentials: 'include',
+    headers: getDefaultHeaders()
+ });
 
 export const authService = {
     async login(username, password) {
         const response = await fetch(`${API_URL}/login/`, {
+            ...getDefaultOptions(),
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCsrfToken(),  // Add CSRF token
-            },
-            credentials: 'include',
             body: JSON.stringify({ username, password })
         });
         return response.json();
@@ -33,12 +32,8 @@ export const authService = {
 
     async register(username, password) {
         const response = await fetch(`${API_URL}/register/`, {
+            ...getDefaultOptions(),
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCsrfToken(),  // Add CSRF token
-            },
-            credentials: 'include',
             body: JSON.stringify({ username, password })
         });
         return response.json();
@@ -53,12 +48,9 @@ export const authService = {
 
     async logout() {
         const response = await fetch(`${API_URL}/logout/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCsrfToken(),  // Add CSRF token
-            },
-            credentials: 'include'
+            ...getDefaultOptions(),
+            method: 'POST'
         });
         return response.json();
     }
-}; 
+};

@@ -13,7 +13,6 @@ export class Minesweeper {
   }
 
   initializeEmptyBoard() {
-    // Initialize empty board without mines
     for (let y = 0; y < this.height; y++) {
       this.board[y] = Array(this.width).fill(0);
       this.revealed[y] = Array(this.width).fill(false);
@@ -24,23 +23,26 @@ export class Minesweeper {
   initialize(firstX, firstY) {
     if (this.initialized) return;
     
-    // Get safe cells (first click and its neighbors)
     const safeCells = this.getSafeCells(firstX, firstY);
-    
-    // Place mines avoiding safe cells
+    this.placeMines(safeCells);
+    this.calculateNumbers();
+    this.initialized = true;
+  }
+
+  placeMines(safeCells) {
     let minesPlaced = 0;
     while (minesPlaced < this.mines) {
       const x = Math.floor(Math.random() * this.width);
       const y = Math.floor(Math.random() * this.height);
       
-      // Check if position is safe to place a mine
       if (this.board[y][x] !== -1 && !safeCells.some(cell => cell.x === x && cell.y === y)) {
         this.board[y][x] = -1;
         minesPlaced++;
       }
     }
+  }
 
-    // Calculate numbers
+  calculateNumbers() {
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
         if (this.board[y][x] !== -1) {
@@ -48,42 +50,43 @@ export class Minesweeper {
         }
       }
     }
-
-    this.initialized = true;
   }
 
   getSafeCells(x, y) {
     const safeCells = [];
-    for (let dy = -1; dy <= 1; dy++) {
-      for (let dx = -1; dx <= 1; dx++) {
-        const ny = y + dy;
-        const nx = x + dx;
-        if (ny >= 0 && ny < this.height && nx >= 0 && nx < this.width) {
-          safeCells.push({ x: nx, y: ny });
-        }
-      }
-    }
+    this.forEachNeighbor(x, y, (nx, ny) => {
+      safeCells.push({ x: nx, y: ny });
+    });
     return safeCells;
   }
 
   countAdjacentMines(x, y) {
     let count = 0;
+    this.forEachNeighbor(x, y, (nx, ny) => {
+      if (this.board[ny][nx] === -1) count++;
+    });
+    return count;
+  }
+
+  forEachNeighbor(x, y, callback) {
     for (let dy = -1; dy <= 1; dy++) {
       for (let dx = -1; dx <= 1; dx++) {
         const ny = y + dy;
         const nx = x + dx;
-        if (ny >= 0 && ny < this.height && nx >= 0 && nx < this.width) {
-          if (this.board[ny][nx] === -1) count++;
+        if (this.isValidCell(nx, ny)) {
+          callback(nx, ny);
         }
       }
     }
-    return count;
+  }
+
+  isValidCell(x, y) {
+    return y >= 0 && y < this.height && x >= 0 && x < this.width;
   }
 
   reveal(x, y) {
     if (this.gameOver || this.flagged[y][x]) return false;
 
-    // Initialize board on first click
     if (!this.initialized) {
       this.initialize(x, y);
     }
@@ -97,15 +100,9 @@ export class Minesweeper {
       this.revealed[y][x] = true;
       
       if (this.board[y][x] === 0) {
-        for (let dy = -1; dy <= 1; dy++) {
-          for (let dx = -1; dx <= 1; dx++) {
-            const ny = y + dy;
-            const nx = x + dx;
-            if (ny >= 0 && ny < this.height && nx >= 0 && nx < this.width) {
-              this.reveal(nx, ny);
-            }
-          }
-        }
+        this.forEachNeighbor(x, y, (nx, ny) => {
+          this.reveal(nx, ny);
+        });
       }
     }
 

@@ -42,6 +42,7 @@ def logout_user(request):
     return Response({'message': 'Logged out successfully'})
 
 @api_view(['GET'])
+@ensure_csrf_cookie
 def check_auth(request):
     if request.user.is_authenticated:
         return Response({

@@ -8,7 +8,6 @@ let game = new Minesweeper(DIFFICULTIES.EASY.width, DIFFICULTIES.EASY.height, DI
 let timer = null;
 let startTime = null;
 let timerDisplay = null;
-
 let isAuthenticated = false;
 let currentUsername = null;
 
@@ -26,10 +25,7 @@ async function checkAuthStatus() {
 
 function createAuthUI() {
     const app = document.getElementById('app');
-
-    if (!app) {
-        return;
-    }
+    if (!app) return;
 
     app.innerHTML = '';
     
@@ -40,40 +36,48 @@ function createAuthUI() {
     header.textContent = 'Minesweeper';
     container.appendChild(header);
 
-    // Login Form
-    const loginForm = document.createElement('form');
-    loginForm.className = 'auth-form';
-    loginForm.innerHTML = `
+    const loginForm = createLoginForm();
+    const registerForm = createRegisterForm();
+
+    container.appendChild(loginForm);
+    container.appendChild(registerForm);
+    app.appendChild(container);
+
+    setupAuthEventListeners(loginForm, registerForm);
+}
+
+function createLoginForm() {
+    const form = document.createElement('form');
+    form.className = 'auth-form';
+    form.innerHTML = `
         <h2>Login</h2>
         <input type="text" placeholder="Username" id="loginUsername" required>
         <input type="password" placeholder="Password" id="loginPassword" required>
         <button type="submit">Login</button>
         <p>Don't have an account? <a href="#" id="showRegister">Register</a></p>
     `;
+    return form;
+}
 
-    // Register Form
-    const registerForm = document.createElement('form');
-    registerForm.className = 'auth-form hidden';
-    registerForm.innerHTML = `
+function createRegisterForm() {
+    const form = document.createElement('form');
+    form.className = 'auth-form hidden';
+    form.innerHTML = `
         <h2>Register</h2>
         <input type="text" placeholder="Username" id="registerUsername" required>
         <input type="password" placeholder="Password" id="registerPassword" required>
         <button type="submit">Register</button>
         <p>Already have an account? <a href="#" id="showLogin">Login</a></p>
     `;
+    return form;
+}
 
-    container.appendChild(loginForm);
-    container.appendChild(registerForm);
-    app.appendChild(container);
-
-    // Wait for elements to be in DOM before adding event listeners
+function setupAuthEventListeners(loginForm, registerForm) {
     setTimeout(() => {
         const showRegisterLink = document.getElementById('showRegister');
         const showLoginLink = document.getElementById('showLogin');
 
-        if (!showRegisterLink || !showLoginLink) {
-            return;
-        }
+        if (!showRegisterLink || !showLoginLink) return;
 
         showRegisterLink.addEventListener('click', (e) => {
             e.preventDefault();
@@ -87,42 +91,46 @@ function createAuthUI() {
             loginForm.classList.remove('hidden');
         });
 
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            try {
-                const response = await authService.login(
-                    document.getElementById('loginUsername').value,
-                    document.getElementById('loginPassword').value
-                );
-                if (response.message === 'Login successful') {
-                    checkAuthStatus();
-                } else {
-                    alert(response.error || 'Login failed');
-                }
-            } catch (error) {
-                alert('Login failed');
-            }
-        });
-
-        registerForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            try {
-                const response = await authService.register(
-                    document.getElementById('registerUsername').value,
-                    document.getElementById('registerPassword').value
-                );
-                if (response.message === 'User created successfully') {
-                    alert('Registration successful! Please login.');
-                    loginForm.classList.remove('hidden');
-                    registerForm.classList.add('hidden');
-                } else {
-                    alert(response.error || 'Registration failed');
-                }
-            } catch (error) {
-                alert('Registration failed');
-            }
-        });
+        setupFormSubmitHandlers(loginForm, registerForm);
     }, 0);
+}
+
+function setupFormSubmitHandlers(loginForm, registerForm) {
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            const response = await authService.login(
+                document.getElementById('loginUsername').value,
+                document.getElementById('loginPassword').value
+            );
+            if (response.message === 'Login successful') {
+                checkAuthStatus();
+            } else {
+                alert(response.error || 'Login failed');
+            }
+        } catch (error) {
+            alert('Login failed');
+        }
+    });
+
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            const response = await authService.register(
+                document.getElementById('registerUsername').value,
+                document.getElementById('registerPassword').value
+            );
+            if (response.message === 'User created successfully') {
+                alert('Registration successful! Please login.');
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+            } else {
+                alert(response.error || 'Registration failed');
+            }
+        } catch (error) {
+            alert('Registration failed');
+        }
+    });
 }
 
 function createUI() {
@@ -137,7 +145,17 @@ function createUI() {
     const container = document.createElement('div');
     container.className = 'game-container';
     
-    // Add user info and logout button
+    addUserInfo(container);
+    addGameControls(container);
+    addGameBoard(container);
+
+    showGameHistory();
+    app.appendChild(container);
+
+    setupLogoutHandler();
+}
+
+function addUserInfo(container) {
     const userInfo = document.createElement('div');
     userInfo.className = 'user-info';
     userInfo.innerHTML = `
@@ -146,60 +164,69 @@ function createUI() {
     `;
     container.appendChild(userInfo);
 
-    // Header
     const header = document.createElement('h1');
     header.textContent = 'Minesweeper';
     container.appendChild(header);
-    
-    // Difficulty selector
-    const difficultyContainer = document.createElement('div');
-    difficultyContainer.className = 'difficulty-selector';
-    
-    const difficultySelect = document.createElement('select');
-    difficultySelect.className = 'difficulty-select';
-    
-    Object.values(DIFFICULTIES).forEach(difficulty => {
-        const option = document.createElement('option');
-        option.value = difficulty.name;
-        option.textContent = difficulty.name;
-        difficultySelect.appendChild(option);
-    });
-    
-    difficultySelect.addEventListener('change', (e) => {
-        const selectedDifficulty = Object.values(DIFFICULTIES).find(d => d.name === e.target.value);
-        game = new Minesweeper(selectedDifficulty.width, selectedDifficulty.height, selectedDifficulty.mines);
-        createBoard();
-        updateBoard();
-    });
-    
-    difficultyContainer.appendChild(difficultySelect);
+}
 
-    // Reset button
-    const resetButton = document.createElement('button');
-    resetButton.textContent = 'New Game';
-    resetButton.className = 'reset-button';
-    resetButton.addEventListener('click', () => {
-        const selectedDifficulty = Object.values(DIFFICULTIES).find(d => d.name === difficultySelect.value);
-        game = new Minesweeper(selectedDifficulty.width, selectedDifficulty.height, selectedDifficulty.mines);
-        createBoard();
-        updateBoard();
-    });
-    
+function addGameControls(container) {
     const controls = document.createElement('div');
     controls.className = 'controls';
+    
+    const difficultyContainer = createDifficultySelector();
+    const resetButton = createResetButton();
+    
     controls.appendChild(difficultyContainer);
     controls.appendChild(resetButton);
 
-    // Timer
     timerDisplay = document.createElement('div');
     timerDisplay.className = 'timer';
     timerDisplay.textContent = '0:00';
     controls.appendChild(timerDisplay);
     
     container.appendChild(controls);
+}
 
+function createDifficultySelector() {
+    const container = document.createElement('div');
+    container.className = 'difficulty-selector';
     
-    // Game board
+    const select = document.createElement('select');
+    select.className = 'difficulty-select';
+    
+    Object.values(DIFFICULTIES).forEach(difficulty => {
+        const option = document.createElement('option');
+        option.value = difficulty.name;
+        option.textContent = difficulty.name;
+        select.appendChild(option);
+    });
+    
+    select.addEventListener('change', (e) => {
+        const selectedDifficulty = Object.values(DIFFICULTIES).find(d => d.name === e.target.value);
+        game = new Minesweeper(selectedDifficulty.width, selectedDifficulty.height, selectedDifficulty.mines);
+        createBoard();
+        updateBoard();
+    });
+    
+    container.appendChild(select);
+    return container;
+}
+
+function createResetButton() {
+    const button = document.createElement('button');
+    button.textContent = 'New Game';
+    button.className = 'reset-button';
+    button.addEventListener('click', () => {
+        const difficulty = document.querySelector('.difficulty-select').value;
+        const selectedDifficulty = Object.values(DIFFICULTIES).find(d => d.name === difficulty);
+        game = new Minesweeper(selectedDifficulty.width, selectedDifficulty.height, selectedDifficulty.mines);
+        createBoard();
+        updateBoard();
+    });
+    return button;
+}
+
+function addGameBoard(container) {
     const board = document.createElement('div');
     board.className = 'board';
     board.style.display = 'grid';
@@ -219,8 +246,9 @@ function createUI() {
     board.addEventListener('contextmenu', handleRightClick);
     
     container.appendChild(board);
-    app.appendChild(container);
+}
 
+function setupLogoutHandler() {
     document.getElementById('logoutBtn').addEventListener('click', async () => {
         await authService.logout();
         isAuthenticated = false;
@@ -230,6 +258,11 @@ function createUI() {
 }
 
 function updateBoard() {
+    updateCells();
+    handleGameOver();
+}
+
+function updateCells() {
     const cells = document.querySelectorAll('.cell');
     cells.forEach(cell => {
         const x = parseInt(cell.dataset.x);
@@ -252,15 +285,47 @@ function updateBoard() {
             cell.textContent = '';
         }
     });
+}
 
-    if (game.gameOver) {
-        if (game.won) {
-            timerDisplay.textContent = 'You Won!';
-            timerDisplay.style.color = '#2ecc71';
-        } else {
-            timerDisplay.textContent = 'Game Over!';
-            timerDisplay.style.color = '#e74c3c';
-        }
+function handleGameOver() {
+    if (!game.gameOver) return;
+
+    if (timer) {
+        clearInterval(timer);
+        timer = null;
+        
+        saveGameResult();
+    }
+
+    updateGameOverDisplay();
+    setTimeout(showGameHistory, 1000);
+}
+
+function saveGameResult() {
+    const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+    const difficulty = document.querySelector('.difficulty-select').value;
+    
+    fetch('http://localhost:8000/api/result/save/', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            difficulty,
+            timeTaken,
+            won: game.won
+        })
+    }).catch(error => console.error('Error saving result:', error));
+}
+
+function updateGameOverDisplay() {
+    if (game.won) {
+        timerDisplay.textContent = 'You Won!';
+        timerDisplay.style.color = '#2ecc71';
+    } else {
+        timerDisplay.textContent = 'Game Over!';
+        timerDisplay.style.color = '#e74c3c';
     }
 }
 
@@ -320,6 +385,10 @@ function createBoard() {
         }
     }
     
+    resetTimer();
+}
+
+function resetTimer() {
     if (timer) {
         clearInterval(timer);
         timer = null;
@@ -329,7 +398,62 @@ function createBoard() {
     timerDisplay.style.removeProperty('color');
 }
 
-// Initialize the app after DOM is loaded
+async function showGameHistory() {
+    try {
+        const data = await fetchGameHistory();
+        updateGameHistoryDisplay(data);
+    } catch (error) {
+        console.error('Error fetching game history:', error);
+    }
+}
+
+async function fetchGameHistory() {
+    const response = await fetch('http://localhost:8000/api/result/results/', {
+        credentials: 'include',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+    });
+    return await response.json();
+}
+
+function updateGameHistoryDisplay(data) {
+    const existingHistory = document.querySelector('.game-history');
+    if (existingHistory) {
+        existingHistory.remove();
+    }
+    
+    const historyDiv = document.createElement('div');
+    historyDiv.className = 'game-history';
+    historyDiv.innerHTML = `
+        <h2>Recent Games</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Difficulty</th>
+                    <th>Time</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${data.results.map(result => `
+                    <tr>
+                        <td>${result.date}</td>
+                        <td>${result.difficulty}</td>
+                        <td>${Math.floor(result.timeTaken / 60)}:${(result.timeTaken % 60).toString().padStart(2, '0')}</td>
+                        <td>${result.won ? '🏆 Won' : '❌ Lost'}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+    
+    const container = document.querySelector('.game-container');
+    container.appendChild(historyDiv);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     checkAuthStatus();
 });

@@ -146,6 +146,15 @@ button:hover {
     background: #ff9999;
   }
 
+  .number-1 { color: blue; }
+  .number-2 { color: green; }
+  .number-3 { color: red; }
+  .number-4 { color: darkblue; }
+  .number-5 { color: darkred; }
+  .number-6 { color: teal; }
+  .number-7 { color: black; }
+  .number-8 { color: gray; }
+
   .timer {
     color: #213547;
   }
@@ -219,4 +228,48 @@ button:hover {
         border-color: #ddd;
         color: #213547;
     }
+}
+
+.game-history {
+  margin-top: 20px;
+  padding: 20px;
+  background: #333;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.game-history table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.game-history th,
+.game-history td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #444;
+}
+
+.game-history th {
+  background-color: #444;
+  font-weight: bold;
+}
+
+@media (prefers-color-scheme: light) {
+  .game-history {
+    background: #fff;
+    color: #213547;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .game-history th {
+    background-color: #f5f5f5;
+  }
+
+  .game-history th,
+  .game-history td {
+    border-bottom: 1px solid #eee;
+  }
 }
