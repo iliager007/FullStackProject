@@ -305,7 +305,7 @@ function saveGameResult() {
     const timeTaken = Math.floor((Date.now() - startTime) / 1000);
     const difficulty = document.querySelector('.difficulty-select').value;
     
-    fetch('http://localhost:8000/api/result/save/', {
+    fetch('http://84.201.154.208:8000/api/result/save/', {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -408,7 +408,7 @@ async function showGameHistory() {
 }
 
 async function fetchGameHistory() {
-    const response = await fetch('http://localhost:8000/api/result/results/', {
+    const response = await fetch('http://84.201.154.208:8000/api/result/results/', {
         credentials: 'include',
         headers: {
             'Accept': 'application/json',

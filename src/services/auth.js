@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8000/api/auth';
+const API_URL = 'http://84.201.154.208:8000/api/auth';
 
 function getCsrfToken() {
     const name = 'csrftoken';
